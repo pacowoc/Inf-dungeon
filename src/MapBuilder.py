@@ -49,7 +49,7 @@ while True:
                 c.print("No such file",style="red")
                 continue
             c.print("Opened a Session Editing File "+PATH,style="bold magenta")
-            Version =int(struct.unpack_from("B",MapFileContent[:1]))
+            Version =int(struct.unpack_from("B",MapFileContent[:1])[0])
             MapDimensions = tuple(struct.unpack_from("HH",MapFileContent[1:5]))  #(DimX,DimY)
             if MapFileContent[5] != 0x00:
                 doSpawn = 0x01
