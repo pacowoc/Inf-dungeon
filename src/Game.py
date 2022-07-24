@@ -16,8 +16,8 @@ def Main(screen:p.Surface):
 
     #Load Map(binary)
     with open(PATH+"/maps"+MAP_PATH,"rb") as MapFile:
-        MapFile = MapFile.read()
-    MapDimensions = struct.unpack_from("BB",MapFile[:2])
+        MapFileContent = MapFile.read()
+    MapDimensions = tuple(struct.unpack_from("BB",MapFileContent[:2]))
     MapArray=np.array(struct.unpack_from("B"*(len(MapFile)-4),MapFile[4:])).reshape(MapDimensions[1],MapDimensions[0])
     PrintMap(MapDimensions,MapArray)
     SpawnArray = np.where(MapArray == 0xD0)
