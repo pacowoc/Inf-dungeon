@@ -3,10 +3,11 @@ import numpy as np
 import struct
 from os.path import dirname,abspath
 from rich.console import Console
+import sys
 
 ViewTypeColor = {
     0:"white on black",
-    1:"white on blue",
+    1:"white on red",
     2:"white on green",
     "Spawn":"white on yellow",
     "Unknown":"white on magenta",
@@ -35,34 +36,37 @@ c.print("Welcome to the Room Editor of the Game",style="bold yellow")
 
 while True:
     while True:
-        c.print("Enter [bold lightgreen]\"open\"[/] to Open a .infdrlayout File or [bold lightgreen]\"new\"[/] to Create a New One")
-        Command = c.input(">>>")
+        try:
+            Command = sys.argv[1]
+        except:
+            c.print("Commands:open,new",style="red")
+            sys.exit()
         if Command == "open":
             PATH = dirname(dirname(abspath(__file__))) + "/maps/"
-            PATH += c.input("[cyan]Map name [/]>>>") 
+            PATH += sys.argv[2]
             PATH += "/Rooms/"
-            PATH += c.input("[cyan]Room name[/]>>>")
+            PATH += sys.argv[3]
             PATH += ".infdrlayout"
             try:
                 MapFileContent = bytes(open(PATH,"rb+").read())
             except:
                 c.print("No such file",style="red")
-                continue
+                sys.exit()
             c.print("Opened a Session Editing File "+PATH,style="bold magenta")
-            Version =int(struct.unpack_from("B",MapFileContent[:1])[0])
-            MapDimensions = tuple(struct.unpack_from("HH",MapFileContent[1:5]))  #(DimX,DimY)
+            Version =int(struct.unpack_from("B",MapFileContent,0)[0])
+            MapDimensions = tuple(struct.unpack_from("HH",MapFileContent,1))  #(DimX,DimY)
             if MapFileContent[5] != 0x00:
                 doSpawn = 0x01
-                SpawnPos =list(struct.unpack_from("HH",MapFileContent[6:10]))
+                SpawnPos =list(struct.unpack_from("HH",MapFileContent,6))
             else:
                 doSpawn = 0x00
                 SpawnPos = [0x0000,0x0000]
             break
         elif Command == "new":
             PATH = dirname(dirname(abspath(__file__))) + "/maps/"
-            PATH += c.input("[cyan]Map name [/]>>>") 
+            PATH += sys.argv[2]
             PATH += "/Rooms/"
-            PATH += c.input("[cyan]Room name[/]>>>")
+            PATH += sys.argv[3]
             PATH += ".infdrlayout"
             Version = 0x00
             c.print("Opened a Session Editing File "+PATH,style="bold magenta")
@@ -82,8 +86,9 @@ while True:
             break
         else:
             c.print("File not found",style="red")
+            sys.exit()
 
-    MapArray=np.array(struct.unpack_from("B"*(len(MapFileContent)-32),MapFileContent[32:])).reshape(MapDimensions[0],MapDimensions[1],16)
+    MapArray=np.array(struct.unpack_from("B"*(len(MapFileContent)-32),MapFileContent,32)).reshape(MapDimensions[0],MapDimensions[1],16)
 
 
 
@@ -105,7 +110,7 @@ while True:
         if Commands_list[0] == "viewtype" or Commands_list[0] == "vt" or Commands_list[0] == "v":
             c.print("",end="      ")
             for j in range(MapDimensions[0]):
-                c.print("{:3}".format(j),style="blue",end=" ")
+                c.print("{:4}".format(j),style="blue",end=" ")
             c.print("\n")
             for i in range(MapDimensions[1]):
                 c.print("{:5}".format(i),style="blue",end=" ")
@@ -115,16 +120,16 @@ while True:
                     Type = BlockBytes[1]
                     TypeO = BlockBytes[8]
                     if doSpawn!=0 and (SpawnPos == [j,i]):
-                        c.print("{:3}".format(Type),style = ViewTypeColor["Spawn"],end=" ")
+                        c.print("{:4}".format(Type),style = ViewTypeColor["Spawn"],end=" ")
                     
                     elif Option != 0:
-                        c.print("{:3}".format(Type),style = ViewTypeColor["Optional"],end = " ")
+                        c.print("{:4}".format(Type),style = ViewTypeColor["Optional"],end = " ")
 
                     else:
                         try:
-                            c.print("{:3}".format(Type),style = ViewTypeColor[Type],end=" ")
+                            c.print("{:4}".format(Type),style = ViewTypeColor[Type],end=" ")
                         except:
-                            c.print("{:3}".format(Type),style = ViewTypeColor["Unknown"],end=" ")
+                            c.print("{:4}".format(Type),style = ViewTypeColor["Unknown"],end=" ")
                 c.print("\n")
 
         elif Commands_list[0] == "viewinfo" or Commands_list[0] == "vi":
@@ -316,7 +321,8 @@ while True:
             c.print("Saved",style="bold cyan")
         elif Commands_list[0] == "quit" or Commands_list[0] == "q":
             c.print("Quit from Session",style="bold magenta")
-            break
+            sys.exit()
+            
 
 
         elif Commands_list[0] == "macro" or Commands_list[0] == "m":
@@ -400,13 +406,6 @@ while True:
 
             
 
-
-
-
-
-
-
-            
         else:
             c.print("Unknown Command",style="red")
 

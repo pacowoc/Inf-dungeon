@@ -1,5 +1,5 @@
 
 import Game
 
-def Main(screen):
-    Game.Main(screen)
+def Main(screen,RenderSize):
+    Game.Main(screen,RenderSize)
